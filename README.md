@@ -12,7 +12,7 @@ Every time you access `/hello?name=YourName`, it logs the name to the database a
 
 ### Executing
 ```bash
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 ![image](/images/Screenshot2025-09-12at15.58.12.png)
