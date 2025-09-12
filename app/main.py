@@ -10,15 +10,15 @@ app = FastAPI()
 
 
 def read_root(name: str = "World"):
-    # # log and connects to a SQLite database
-    # conn = sqlite3.connect("hello.db")
-    # c = conn.cursor()
-    # c.execute("CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY, name TEXT)")
+    # log and connects to a SQLite database
+    conn = sqlite3.connect("hello.db")
+    c = conn.cursor()
+    c.execute("CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY, name TEXT)")
 
-    # # inserts the name into a logs table
-    # c.execute("INSERT INTO logs (name) VALUES (?)", (name,))
-    # conn.commit()
-    # conn.close() # commit and close DB connection
+    # inserts the name into a logs table
+    c.execute("INSERT INTO logs (name) VALUES (?)", (name,))
+    conn.commit()
+    conn.close() # commit and close DB connection
 
     # returns a JSON message containing the entered name
     return {"message": f"Hello, {name}!"}
