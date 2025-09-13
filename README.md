@@ -58,32 +58,66 @@ https://hello-fde-prototype.herokuapp.com
 ```bash
 https://hello-fde-prototype.herokuapp.com/hello?name=venom
 ```
-
 ![image](/images/Screenshot2025-09-12at16.57.38.png)
 
 
-# Heroku Deployment Notes
+## 5. Has a CI/CD pipeline with GitHub Actions
+### Setting Environment Secrets
+#### Create Heroku API KEY
+You will need the API key to connect GitHub with Heroku. Use this command in the CLI:-
+```bash
+heroku auth:token
+```
+#### Add Secrets in GitHub
+- In Github, head to `Settings` 
+![image](/images/Screenshot2025-09-13at21.33.30.png)
+- Then to `Secrets and Variables` and then `Actions`
+![image](/images/Screenshot2025-09-13at21.33.53.png)
 
+- Add the secrets:- `HEROKU_API_KEY`, `HEROKU_APP_NAME`, `HEROKU_EMAIL`
+- Use the API key that created [above](#Create-Heroku-API-KEY)
+![image](/images/Screenshot2025-09-13at21.40.42.png)
+
+### Creating the Deployment Config file
+- Create a file `.github/workflows/deploy.yml`
+- You can find it here: [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
+- You don’t "RUN" a GitHub Actions workflow manually on your laptop. It’s event-driven.
+- Workflows are triggered by the events you defined:
+```yaml
+# deploy.yml
+on:
+  push:
+    branches: [ main ]
+```
+- So when you push to `main` branch, the GitHub Actions that you configured above will auto-start the pipeline
+- You can check this by going to to your GitHub Repo --> `Actions`
+![image](/images/Screenshot2025-09-13at21.47.10.png)
+- You’ll see the workflow “CI/CD to Heroku” running
+![image](/images/Screenshot2025-09-13at22.42.43.png)
+- You can also check status in Heroku App
+![image](/images/Screenshot2025-09-13at21.55.36.png)
+- 
+![image](/images/Screenshot2025-09-13at21.57.55.png)
+
+---
+## Deployment Notes
+
+### Heroku
 When deploying this FastAPI app to Heroku, I ran into a few common issues.  
 Here’s a quick summary of the fixes.
 
----
-
 ### 1. Requirements
 Make sure `requirements.txt` is in the project root:
-
 ```bash
 pip freeze > requirements.txt
 ```
 
 ### 2. Procfile
 Define how Heroku should run the app.
-
 If `main.py` is in the root:
 ```bash
 web: uvicorn main:app --host=0.0.0.0 --port=${PORT}
 ```
-
 If `main.py` is in the in the `app` folder:
 ```bash
 web: uvicorn app.main:app --host=0.0.0.0 --port=${PORT}
@@ -106,3 +140,21 @@ Check live logs when debugging:
 ```bash
 heroku logs --tail
 ```
+
+---
+### CI/CD
+We set up a GitHub Actions workflow (`deploy.yml`) to automatically deploy a FastAPI app to Heroku whenever code was pushed to main.
+The workflow used the `akhileshns/heroku-deploy@v3.12.12`
+
+#### The Issue
+When the workflow ran, the deploy step failed with the following error:
+![image](/images/Screenshot2025-09-13at21.47.17.png)
+![image](/images/Screenshot2025-09-13at21.47.27.png)
+
+#### Root Cause
+- The heroku-deploy action expects the Heroku CLI to be available on the GitHub runner.
+- GitHub’s ubuntu-latest runners no longer include the Heroku CLI by default.
+- As a result, the action couldn’t find the heroku command, leading to a failed deployment.
+
+The Fix
+- Explicitly install the Heroku CLI before running the deploy step.
